@@ -1,6 +1,6 @@
 use std::env;
-use std::error::Error;
 use std::fs;
+use std::io;
 use std::process;
 
 struct Config {
@@ -36,24 +36,42 @@ fn main() {
     }
 }
 
-fn do_command(config: Config) -> Result<(), Box<dyn Error>> {
+fn do_command(config: Config) -> Result<(), io::Error> {
     let command = config.command;
     let filename = config.filename;
-    if command == "read" {
-        let content = fs::read_to_string(filename).expect("Can't read a file");
-        println!("Read content : \n{}", content);
-        Ok(())
-    } else if command == "write" {
-        let new_content = "This is a new content to write in the file";
-        fs::write(filename, new_content).expect("Can't write a file.");
-        println!("Written!");
-        Ok(())
-    } else if command == "del" {
-        fs::remove_file(filename).expect("File can't delete.");
-        Ok(())
-    } else {
-        println!("No command found.");
-        Ok(())
+    // if command == "read" {
+    //     let content = fs::read_to_string(filename).expect("Can't read a file");
+    //     println!("Read content : \n{}", content);
+    //     Ok(())
+    // } else if command == "write" {
+    //     let new_content = "This is a new content to write in the file";
+    //     fs::write(filename, new_content).expect("Can't write a file.");
+    //     println!("Written!");
+    //     Ok(())
+    // } else if command == "del" {
+    //     fs::remove_file(filename)
+    // } else {
+    //     println!("No command found.");
+    //     Ok(())
+    // }
+
+    match command.as_str() {
+        "read" => {
+            let content = fs::read_to_string(filename).expect("Can't read a file");
+            println!("Read content : \n{}", content);
+            Ok(())
+        }
+        "write" => {
+            let new_content = "This is a new content to write in the file";
+            fs::write(filename, new_content).expect("Can't write a file.");
+            println!("Written!");
+            Ok(())
+        }
+        "del" => fs::remove_file(filename),
+        _ => {
+            println!("No command found.");
+            Ok(())
+        }
     }
 }
 
