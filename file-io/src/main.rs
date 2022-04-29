@@ -1,7 +1,9 @@
 use std::env;
+use std::fmt::Error;
 use std::fs;
 use std::io;
 use std::process;
+use std::rc::Rc;
 
 struct Config {
     command: String,
@@ -21,11 +23,27 @@ impl Config {
     }
 }
 
+#[warn(dead_code)]
+fn smart_pointer() {
+    let pointer: Rc<i32> = Rc::new(1);
+
+    {
+        let second_pointer = pointer.clone();
+        println!("second: {}", *second_pointer);
+    }
+    {
+        let third_pointer: Rc<i32> = Rc::clone(&pointer);
+        println!("third: {}", *third_pointer);
+    }
+
+    println!("{}", *pointer);
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     println!("Args: {:?}", args);
 
-    let config = Config::new(&args).unwrap_or_else(|err| {
+    let config: Config = Config::new(&args).unwrap_or_else(|err: &str| {
         println!("Problem parsing arguments : {}", err);
         process::exit(1);
     });
@@ -37,8 +55,8 @@ fn main() {
 }
 
 fn do_command(config: Config) -> Result<(), io::Error> {
-    let command = config.command;
-    let filename = config.filename;
+    let command: String = config.command;
+    let filename: String = config.filename;
     // if command == "read" {
     //     let content = fs::read_to_string(filename).expect("Can't read a file");
     //     println!("Read content : \n{}", content);
@@ -57,12 +75,12 @@ fn do_command(config: Config) -> Result<(), io::Error> {
 
     match command.as_str() {
         "read" => {
-            let content = fs::read_to_string(filename).expect("Can't read a file");
+            let content: String = fs::read_to_string(filename).expect("Can't read a file");
             println!("Read content : \n{}", content);
             Ok(())
         }
         "write" => {
-            let new_content = "This is a new content to write in the file";
+            let new_content: &str = "This is a new content to write in the file";
             fs::write(filename, new_content).expect("Can't write a file.");
             println!("Written!");
             Ok(())
@@ -83,3 +101,14 @@ fn do_command(config: Config) -> Result<(), io::Error> {
 
 //     Config { command, filename }
 // }
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn smart_pointer_test() {
+        smart_pointer();
+    }
+}
